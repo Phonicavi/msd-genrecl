@@ -3,7 +3,7 @@ import os
 import numpy as np
 import h5py
 
-rootDir = '/Users/Phonic/Desktop/MillionSongSubset/data'
+rootDir = '/directory/to/data'
 
 
 def traverse():
@@ -24,22 +24,22 @@ def structure(filename, flag = False):
 
 		analysis: 16
 
-			0:  <HDF5 dataset "bars_confidence": shape (291,), type "<f8">
-			1:  <HDF5 dataset "bars_start": shape (291,), type "<f8">
-			2:  <HDF5 dataset "beats_confidence": shape (291,), type "<f8">
-			3:  <HDF5 dataset "beats_start": shape (291,), type "<f8">
-			4:  <HDF5 dataset "sections_confidence": shape (8,), type "<f8">
-			5:  <HDF5 dataset "sections_start": shape (8,), type "<f8">
-			6:  <HDF5 dataset "segments_confidence": shape (562,), type "<f8">
-			7:  <HDF5 dataset "segments_loudness_max": shape (562,), type "<f8">
-			8:  <HDF5 dataset "segments_loudness_max_time": shape (562,), type "<f8">
-			9:  <HDF5 dataset "segments_loudness_start": shape (562,), type "<f8">
-			10: <HDF5 dataset "segments_pitches": shape (562, 12), type "<f8">
-			11: <HDF5 dataset "segments_start": shape (562,), type "<f8">
-			12: <HDF5 dataset "segments_timbre": shape (562, 12), type "<f8">
-			13: <HDF5 dataset "songs": shape (1,), type "|V220">
-			14: <HDF5 dataset "tatums_confidence": shape (582,), type "<f8">
-			15: <HDF5 dataset "tatums_start": shape (582,), type "<f8">
+			0:	<HDF5 dataset "bars_confidence": shape (291,), type "<f8">
+			1:	<HDF5 dataset "bars_start": shape (291,), type "<f8">
+			2:	<HDF5 dataset "beats_confidence": shape (291,), type "<f8">
+			3:	<HDF5 dataset "beats_start": shape (291,), type "<f8">
+			4:	<HDF5 dataset "sections_confidence": shape (8,), type "<f8">
+			5:	<HDF5 dataset "sections_start": shape (8,), type "<f8">
+			6:	<HDF5 dataset "segments_confidence": shape (562,), type "<f8">
+			7:	<HDF5 dataset "segments_loudness_max": shape (562,), type "<f8">
+			8:	<HDF5 dataset "segments_loudness_max_time": shape (562,), type "<f8">
+			9:	<HDF5 dataset "segments_loudness_start": shape (562,), type "<f8">
+			10:	<HDF5 dataset "segments_pitches": shape (562, 12), type "<f8">
+			11:	<HDF5 dataset "segments_start": shape (562,), type "<f8">
+			12:	<HDF5 dataset "segments_timbre": shape (562, 12), type "<f8">
+			13:	<HDF5 dataset "songs": shape (1,), type "|V220">
+			14:	<HDF5 dataset "tatums_confidence": shape (582,), type "<f8">
+			15:	<HDF5 dataset "tatums_start": shape (582,), type "<f8">
 
 
 		metadata: 5
