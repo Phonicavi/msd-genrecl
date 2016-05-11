@@ -1,21 +1,32 @@
 import os
-# import keras
+import keras
 import numpy as np
+import pandas as pd
 import h5py
+import helper as hp
+
 
 rootDir = '/directory/to/data'
 
 
 def traverse():
 	count = 0
+	General = {'country':0, 'hip hop':0, 'metal':0, 'jazz':0, 'pop':0}
+	Inventory = []
 	for root, dirs, files in os.walk(rootDir):
 		for filespath in files:
-			count += 1
 			filename = os.path.join(root, filespath)
-			print(filename)
-			structure(filename)
+			# print(filename)
+			# structure(filename)
+			(flag, genre)  = extract(filename)
+			if flag:
+				count += 1
+				General[genre] += 1
+				Inventory.append((filename, genre))
+			pass
+			# print
 
-	return count
+	return (count, General, Inventory)
 
 
 def structure(filename, flag = False):
@@ -24,22 +35,22 @@ def structure(filename, flag = False):
 
 		analysis: 16
 
-			0:	<HDF5 dataset "bars_confidence": shape (291,), type "<f8">
-			1:	<HDF5 dataset "bars_start": shape (291,), type "<f8">
-			2:	<HDF5 dataset "beats_confidence": shape (291,), type "<f8">
-			3:	<HDF5 dataset "beats_start": shape (291,), type "<f8">
-			4:	<HDF5 dataset "sections_confidence": shape (8,), type "<f8">
-			5:	<HDF5 dataset "sections_start": shape (8,), type "<f8">
-			6:	<HDF5 dataset "segments_confidence": shape (562,), type "<f8">
-			7:	<HDF5 dataset "segments_loudness_max": shape (562,), type "<f8">
-			8:	<HDF5 dataset "segments_loudness_max_time": shape (562,), type "<f8">
-			9:	<HDF5 dataset "segments_loudness_start": shape (562,), type "<f8">
-			10:	<HDF5 dataset "segments_pitches": shape (562, 12), type "<f8">
-			11:	<HDF5 dataset "segments_start": shape (562,), type "<f8">
-			12:	<HDF5 dataset "segments_timbre": shape (562, 12), type "<f8">
-			13:	<HDF5 dataset "songs": shape (1,), type "|V220">
-			14:	<HDF5 dataset "tatums_confidence": shape (582,), type "<f8">
-			15:	<HDF5 dataset "tatums_start": shape (582,), type "<f8">
+			0:  <HDF5 dataset "bars_confidence": shape (291,), type "<f8">
+			1:  <HDF5 dataset "bars_start": shape (291,), type "<f8">
+			2:  <HDF5 dataset "beats_confidence": shape (291,), type "<f8">
+			3:  <HDF5 dataset "beats_start": shape (291,), type "<f8">
+			4:  <HDF5 dataset "sections_confidence": shape (8,), type "<f8">
+			5:  <HDF5 dataset "sections_start": shape (8,), type "<f8">
+			6:  <HDF5 dataset "segments_confidence": shape (562,), type "<f8">
+			7:  <HDF5 dataset "segments_loudness_max": shape (562,), type "<f8">
+			8:  <HDF5 dataset "segments_loudness_max_time": shape (562,), type "<f8">
+			9:  <HDF5 dataset "segments_loudness_start": shape (562,), type "<f8">
+			10: <HDF5 dataset "segments_pitches": shape (562, 12), type "<f8">
+			11: <HDF5 dataset "segments_start": shape (562,), type "<f8">
+			12: <HDF5 dataset "segments_timbre": shape (562, 12), type "<f8">
+			13: <HDF5 dataset "songs": shape (1,), type "|V220">
+			14: <HDF5 dataset "tatums_confidence": shape (582,), type "<f8">
+			15: <HDF5 dataset "tatums_start": shape (582,), type "<f8">
 
 
 		metadata: 5
@@ -58,7 +69,7 @@ def structure(filename, flag = False):
 			2:	<HDF5 dataset "songs": shape (1,), type "|V8">
 
 	"""
-	with h5py.File(filename, 'r') as f:
+	with h5py.File(filename, 'r+') as f:
 
 		if flag:
 			print('---'+filename+'---')
@@ -83,10 +94,13 @@ def structure(filename, flag = False):
 				npdata = np.array(data)
 				if flag:
 					print(data) # class 'h5py._hl.dataset.Dataset'
-					# print(data.shape)
-					# print(data.size)
-					# print(data.dtype)
-					# print
+					'''
+						print(data.shape)
+						print(data.size)
+						print(data.dtype)
+						print
+
+					'''
 					print('Contents: \n')
 					print(npdata)
 					print
@@ -98,12 +112,59 @@ def structure(filename, flag = False):
 		pass
 
 
+def extract(filename):
+	"""
+		Extract necessary titles
+
+	"""
+	Keys = ['country', 'hip hop', 'metal', 'jazz', 'pop']
+	with h5py.File(filename, 'r+') as f:
+
+		# print('---'+filename+'---')
+		
+		meta_list = f.get('metadata').items()
+		# draw terms as nparray
+		terms = np.array(meta_list[0][1])
+		terms_freq = np.array(meta_list[1][1])
+		terms_weight = np.array(meta_list[2][1])
+		if terms.size == 0:
+			return (False, '')
+		else:
+			'''
+				print('genre = '+str(terms[0]))
+				print('freq = '+str(terms_freq[0]))
+				print('weight = '+str(terms_weight[0]))
+
+			'''
+			genre = str(terms[0:3])
+			return_label = ''
+			# collect genre
+			for G_label in Keys:
+				if genre.find(G_label) >= 0:
+					return_label = G_label
+					break
+
+			if return_label == '':
+				return (False, '')
+			else:
+				return (True, return_label)
+
+
 
 def main():
-	total = traverse()
+	(total, General, Inventory) = traverse()
 	print(total)
+	
+	# General = hp.load('genre.txt')
+	hp.save(General, 'genre.txt')
+	hp.save(Inventory, 'inventory.txt')
+	raw_genre_list = hp.sort_genre(General)
 
-	structure('./test_data/TRAAADZ128F9348C2E.h5', True)
+	print(raw_genre_list)
+
+	# test-part
+	# structure('TRAAAAW128F429D538.h5', True)
+	# extract('TRAAAAW128F429D538.h5')
 	print
 
 
