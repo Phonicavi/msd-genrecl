@@ -1,12 +1,12 @@
 import os
-import keras
+# import keras
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import h5py
 import helper as hp
 
 
-rootDir = '/directory/to/data'
+rootDir = '/Users/Phonic/Desktop/MillionSongSubset/data'
 
 
 def traverse():
@@ -18,13 +18,26 @@ def traverse():
 			filename = os.path.join(root, filespath)
 			# print(filename)
 			# structure(filename)
-			(flag, genre)  = extract(filename)
+			(flag, genre) = extract(filename)
 			if flag:
 				count += 1
 				General[genre] += 1
-				Inventory.append((filename, genre))
+				tupple = (filename, genre)
+				Inventory.append(tupple)
+				# 
+				with h5py.File(filename, 'r+') as f:
+					info = str(np.array(f.get('metadata').items()[4][1])[0])
+					if info.find("Dive") >= 0:
+						print(filename)
+						print(info)
+						print
+						print(str(np.array(f.get('metadata').items()[0][1])))
+						print
+				# 
+				# structure(filename)
 			pass
 			# print
+
 
 	return (count, General, Inventory)
 
@@ -117,9 +130,9 @@ def extract(filename):
 		Extract necessary titles
 
 	"""
-	Keys = ['country', 'hip hop', 'metal', 'jazz', 'pop']
 	with h5py.File(filename, 'r+') as f:
 
+		Keys = ['country', 'hip hop', 'metal', 'jazz', 'pop']
 		# print('---'+filename+'---')
 		
 		meta_list = f.get('metadata').items()
@@ -148,12 +161,16 @@ def extract(filename):
 				return (False, '')
 			else:
 				return (True, return_label)
+		pass
+	pass
 
 
 
 def main():
+	
 	(total, General, Inventory) = traverse()
 	print(total)
+
 	
 	# General = hp.load('genre.txt')
 	hp.save(General, 'genre.txt')
@@ -161,10 +178,12 @@ def main():
 	raw_genre_list = hp.sort_genre(General)
 
 	print(raw_genre_list)
+	
 
 	# test-part
-	# structure('TRAAAAW128F429D538.h5', True)
-	# extract('TRAAAAW128F429D538.h5')
+	# traverse()
+	# structure('TRAAADZ128F9348C2E.h5', True)
+	# print(extract('TRAAAAW128F429D538.h5'))
 	print
 
 
