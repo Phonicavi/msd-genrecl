@@ -31,17 +31,24 @@ def traverse(Inventory, Tag):
 
 def joint(inv1, inv2):
 	storage = {}
+	count = 0
 	for (item, genr) in inv1:
 		if storage.has_key(item):
 			pass
 		else:
 			storage[item] = 1
+			if genr == 'Latin':
+				count += 1
 
 	for (item, genr) in inv2:
 		if storage.has_key(item):
 			pass
 		else:
 			storage[item] = 1
+			if genr == 'Latin':
+				count += 1
+
+	print 'Latin:', count
 
 	return storage
 
@@ -88,10 +95,10 @@ def main():
 
 	print '-----'
 	(Inventory, Tag) = tag('tag1.txt')
-	print len(Inventory)
-	print len(Tag)
+	# print len(Inventory)
+	# print len(Tag)
 	# print Inventory
-	print hp.sort_genre(Tag)
+	# print hp.sort_genre(Tag)
 	print
 	(count, Genre, Store) = traverse(Inventory, Tag)
 	print count
@@ -105,10 +112,10 @@ def main():
 
 	print '-----'
 	(Inventory, Tag) = tag('tag2.txt')
-	print len(Inventory)
-	print len(Tag)
+	# print len(Inventory)
+	# print len(Tag)
 	# print Inventory
-	print hp.sort_genre(Tag)
+	# print hp.sort_genre(Tag)
 	print
 	(count, Genre, Store) = traverse(Inventory, Tag)
 	print count
