@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-  
 
-from BasicClass import *
+from BasicClass_TA import *
 import sys
 import random
 from sklearn.cluster import KMeans
@@ -11,10 +11,11 @@ GENRES = ['Jazz','Rap','Rock','Country']
 
 
 
+
 def Inner_Kmeans(SingleGenreSongs,numOfClusters):
 	means = [item.mean_timbreVec for item in SingleGenreSongs]
 	means_array = np.array(means)
-	model = KMeans(n_clusters = numOfClusters,n_init = 8)
+	model = KMeans(n_clusters = numOfClusters,n_init = 10)
 	model.fit(means)
 
 	lbls = model.labels_
@@ -50,7 +51,7 @@ def Inner_Kmeans(SingleGenreSongs,numOfClusters):
 def Inner_GMM(SingleGenreSongs,numOfClusters):
 	means = [item.mean_timbreVec for item in SingleGenreSongs]
 	means_array = np.array(means)
-	model = mixture.GMM(n_components = numOfClusters,covariance_type = 'full',n_init = 8)
+	model = mixture.GMM(n_components = numOfClusters,covariance_type = 'full',n_init = 10)
 	model.fit(means)
 
 	lbls = model.predict(means)
@@ -106,7 +107,6 @@ def Kmeans_KL_train(allGenreSongs,numofGenres,assign_cluster = [[0],[1],[2],[3]]
 	# 		cluster_centroids[j].addCov_timbre(allGenreSongs[i][sel].cov_timbreVec)
 
 
-
 	## Using inner_kmeaans select cluster centroid  
 	cluster_centroids = []
 	for i in range (numofGenres):
@@ -125,16 +125,12 @@ def Kmeans_KL_train(allGenreSongs,numofGenres,assign_cluster = [[0],[1],[2],[3]]
 
 			cluster_centroids[j].addMean_timbre(c_means[idx])
 			cluster_centroids[j].addCov_timbre(c_covs[idx])
-
-		# for idx in range(len(allGenreSongs[i])):
-		# 	cluster_centroids[i].addMean_timbre(allGenreSongs[i][idx].mean_timbreVec)   
-		# 	cluster_centroids[i].addCov_timbre(allGenreSongs[i][idx].cov_timbreVec)
-		# cluster_centroids[i].averMean_timbre(len(allGenreSongs[i]))
-		# cluster_centroids[i].averCov_timbre(len(allGenreSongs[i]))
 	print "len of cluster_centroids", len(cluster_centroids)
+
 
 	for it in range(iter_num):
 		print "#iter",it,"..."
+		error = 0.0
 		num_in_centroid = [0 for i in range(len(cluster_centroids))]
 		new_cluster_centroids = []
 		for i in range (len(cluster_centroids)):
@@ -144,21 +140,22 @@ def Kmeans_KL_train(allGenreSongs,numofGenres,assign_cluster = [[0],[1],[2],[3]]
 			for centroid in cluster_centroids:
 				KL_dist.append(getKLdiv(song.mean_timbreVec,centroid.mean_timbreVec,song.cov_timbreVec,centroid.cov_timbreVec))	# pay attention to something need to be discarded
 			val,idx = min((val,idx) for (idx,val) in enumerate(KL_dist))
+			error += val
 			num_in_centroid[idx] += 1
 			new_cluster_centroids[idx].addMean_timbre(song.mean_timbreVec)
 			new_cluster_centroids[idx].addCov_timbre(song.cov_timbreVec)
 
 		for i in range(len(new_cluster_centroids)):
 			if (num_in_centroid[i] > 0):
-				print "# in cluster ",i,": ",num_in_centroid[i]
+				# print "# in cluster ",i,": ",num_in_centroid[i]
 				new_cluster_centroids[i].averMean_timbre(num_in_centroid[i])
 				new_cluster_centroids[i].averCov_timbre(num_in_centroid[i])
 		cluster_centroids = deepcopy(new_cluster_centroids)
 
-	return cluster_centroids
+	return error,cluster_centroids
 
 
-def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans"):
+def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans",n_init = 3):
 	## FetchData
 	NeedReFetch = False
 	allGenreSongsTrain,allGenreSongsTest = fetchData_TA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch)
@@ -175,10 +172,8 @@ def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans"):
 
 
 	print assign_cluster
-	# assign_cluster = [[0,1,2],[3],[4],[5]]
 
-	model = Kmeans_KL_train(allGenreSongsTrain,len(GENRES),assign_cluster,inner)
-
+	(error,model)  = min((error,model) for (error,model) in ( [Kmeans_KL_train(allGenreSongsTrain,len(GENRES),assign_cluster,inner) for init in range(n_init)]));
 	print "Finish Kmeans training ..."
 
 	confuseMat = [[0 for i in range(len(GENRES))] for j in range(len(GENRES))];
@@ -200,7 +195,7 @@ def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans"):
 					gen = j
 					break
 			confuseMat[i][gen] += 1
-	print "Start Kmeans predicting ..."
+	print "Finish Kmeans predicting ..."
 	return confuseMat
 
 def Knn_KL(K_value):
@@ -259,4 +254,4 @@ def Knn_KL(K_value):
 
 if __name__ == '__main__':
 	# print Knn_KL(12)
-	print Kmeans_KL([3,1,1,1],inner = "Kmeans")
+	print Kmeans_KL([4,1,1,2],inner = "GMM",n_init = 5)
