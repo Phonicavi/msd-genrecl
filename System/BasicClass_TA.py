@@ -143,8 +143,10 @@ def getKLdiv(meanV1,meanV2,cov1,cov2):
 
 
 
-def fetchData_TA(numNeeded,Genres,NeedReFetch):		## numNeeded like [250,250,250,250,250]
+def fetchData_TA(numNeeded,Genres,NeedReFetch,usedGenres = [1,1,1,1]):		## numNeeded like [250,250,250,250,250]
 	assert(len(numNeeded) == len(Genres))
+	assert(len(usedGenres) == len(Genres))
+	# print Genres
 	print "Start Fetching Data ..."
 	if not NeedReFetch:
 		try:
@@ -212,6 +214,14 @@ def fetchData_TA(numNeeded,Genres,NeedReFetch):		## numNeeded like [250,250,250,
 		with open('allGenreSongsTrain_TA.pkl','wb') as f1 ,open('allGenreSongsTest_TA.pkl','wb') as f2:
 			pickle.dump(allGenreSongsTrain,f1)
 			pickle.dump(allGenreSongsTest,f2)
+
+	for i in range(len(usedGenres)):
+		if (usedGenres[i] == 0):
+			allGenreSongsTrain[i] = []
+			allGenreSongsTest[i] = []
+	for t in range(len(usedGenres) - sum(usedGenres)):
+		allGenreSongsTrain.remove([])
+		allGenreSongsTest.remove([])
 	print "Done with Fetching Data ..."
 	return allGenreSongsTrain,allGenreSongsTest
 

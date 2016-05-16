@@ -6,8 +6,9 @@ import random
 from sklearn.cluster import KMeans
 from sklearn import mixture
 
-NUM_NEED_PER_GENRE = [200,200,200,200]
-GENRES = ['Jazz','Rap','Rock','Country']
+NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
+GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
+USED_GENRES = [1,1,0,1,0,1,0]		## remained to be XJBplay
 
 
 
@@ -158,14 +159,15 @@ def Kmeans_KL_train(allGenreSongs,numofGenres,assign_cluster = [[0],[1],[2],[3]]
 def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans",n_init = 3):
 	## FetchData
 	NeedReFetch = False
-	allGenreSongsTrain,allGenreSongsTest = fetchData_TA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch)
+	assert(len(cluster_num_of_each_genre) == sum(USED_GENRES))
+	allGenreSongsTrain,allGenreSongsTest = fetchData_TA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
 
 	print "Start Kmeans training ..."
 
-	assign_cluster = [[] for i in range(len(GENRES))]
+	assign_cluster = [[] for i in range(sum(USED_GENRES))]
 
 	idx = 0;
-	for gen in range(len(GENRES)):
+	for gen in range(sum(USED_GENRES)):
 		for n in range(cluster_num_of_each_genre[gen]):
 			assign_cluster[gen].append(idx)
 			idx += 1
@@ -173,15 +175,15 @@ def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans",n_init = 3):
 
 	print assign_cluster
 
-	(error,model)  = min((error,model) for (error,model) in ( [Kmeans_KL_train(allGenreSongsTrain,len(GENRES),assign_cluster,inner) for init in range(n_init)]));
+	(error,model)  = min((error,model) for (error,model) in ( [Kmeans_KL_train(allGenreSongsTrain,sum(USED_GENRES),assign_cluster,inner) for init in range(n_init)]));
 	print "Finish Kmeans training ..."
 
-	confuseMat = [[0 for i in range(len(GENRES))] for j in range(len(GENRES))];
+	confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
 
 	print "Start Kmeans predicting ..."
 	cnt = 0;
 	
-	for i in range(len(GENRES)):
+	for i in range(sum(USED_GENRES)):
 		for song in allGenreSongsTest[i]:
 			cnt += 1
 			print "Dealing with testSongs ", cnt
@@ -201,21 +203,21 @@ def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans",n_init = 3):
 def Knn_KL(K_value):
 	## FetchData
 	NeedReFetch = False
-	allGenreSongsTrain,allGenreSongsTest = fetchData_TA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch)
+	allGenreSongsTrain,allGenreSongsTest = fetchData_TA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
 
-	confuseMat = [[0 for i in range(len(GENRES))] for j in range(len(GENRES))];
+	confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
 
 	print "Start Knn ..."
 
 	cnt = 0;
 
-	for i in range(len(GENRES)):
+	for i in range(sum(USED_GENRES)):
 		for testSong in allGenreSongsTest[i]:
 			cnt += 1
 			print "Dealing with testSongs ", cnt
 			k_nearest = [[sys.maxint,-1] for j in range(K_value)]		## (KL_dist,cluster_centroid)
 
-			for j in range(len(GENRES)):
+			for j in range(sum(USED_GENRES)):
 				for trainSong in allGenreSongsTrain[j]:
 					tp,idx = max((tp,idx) for (idx,tp) in enumerate(k_nearest))
 					cen_idx = k_nearest[idx][1]
@@ -224,8 +226,8 @@ def Knn_KL(K_value):
 					if  tmp_dis < k_nearest[idx][0]:
 						k_nearest[idx][0] = tmp_dis
 						k_nearest[idx][1] = j
-			voting = [0 for j in range(len(GENRES))]
-			sum_of_dist = [0.0 for j in range(len(GENRES))]
+			voting = [0 for j in range(sum(USED_GENRES))]
+			sum_of_dist = [0.0 for j in range(sum(USED_GENRES))]
 
 			for j in range(K_value):
 				voting[k_nearest[j][1]]+=1
@@ -235,7 +237,7 @@ def Knn_KL(K_value):
 			min_dist = sys.maxint
 			max_idx = -1;
 
-			for j in range(len(GENRES)):
+			for j in range(sum(USED_GENRES)):
 				if (voting[j] > max_cnt) or (voting[j] == max_cnt and min_dist > sum_of_dist[j]):
 					max_cnt = voting[j]
 					min_dist = sum_of_dist[j]
@@ -253,5 +255,5 @@ def Knn_KL(K_value):
 
 
 if __name__ == '__main__':
-	# print Knn_KL(12)
-	print Kmeans_KL([4,1,1,2],inner = "GMM",n_init = 5)
+	print Knn_KL(12)
+	print Kmeans_KL([4,1,1,2],inner = "Kmeans",n_init = 5)

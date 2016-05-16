@@ -7,12 +7,15 @@ from sklearn.metrics import classification_report as clfr
 from sklearn.svm import SVC
 import math
 
-NUM_NEED_PER_GENRE = [200,200,200,200]
-GENRES = ['Jazz','Rap','Rock','Country']
+NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
+GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
+USED_GENRES = [1,1,1,1,0,0,0]					## remained to be XJBplay
+
+
 
 def multi_SVM(needcv = False):
 	NeedReFetch = False
-	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch)
+	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
 
 	# assert(len(allGenreSongsTrain[0][0]) == 106)
 
@@ -20,14 +23,14 @@ def multi_SVM(needcv = False):
 	TrainY = []
 	TestX = []
 	TestY = []
-	for i in range(len(GENRES)):
+	for i in range(sum(USED_GENRES)):
 		for j in allGenreSongsTrain[i]:
 			TrainX.append(j)
 			TrainY.append(i)
 		for k in allGenreSongsTest[i]:
 			TestX.append(k)
 			TestY.append(i)
-	confuseMat = [[0 for i in range(len(GENRES))] for j in range(len(GENRES))];
+	confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
 	if not needcv:
 		print "Start SVM training ... "
 		model = SVC()
@@ -76,7 +79,7 @@ def NNet():
 	from keras.layers.convolutional import Convolution2D, MaxPooling2D
 
 	NeedReFetch = False
-	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch)
+	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
 
 
 
@@ -86,93 +89,108 @@ def NNet():
 	TrainY = []
 	TestX = []
 	TestY = []
-	for i in range(len(GENRES)):
+	for i in range(sum(USED_GENRES)):
 		for j in allGenreSongsTrain[i]:
 			TrainX.append(j)
 			TrainY.append(i)
 		for k in allGenreSongsTest[i]:
 			TestX.append(k)
 			TestY.append(i)
-	TrainY = np_utils.to_categorical(TrainY, len(GENRES))
-	# print TrainY
-	# TestY = np_utils.to_categorical(TestY, len(GENRES))
+	TrainY = np_utils.to_categorical(TrainY, sum(USED_GENRES))
 
+
+	## the network remained to be XJBplay
 
 	model = Sequential()
 
-	# model.add(Dense(output_dim=30, input_dim=len(TrainX[0]),W_regularizer=l1(0.005)))
+	numNode = 128
 
-	# model.add(Activation("tanh"))
-
-	# model.add(Dense(output_dim=30))
-	# # model.add(Activation('tanh'))
-	# model.add(PReLU())
-	# model.add(BatchNormalization())
-	# model.add(Dropout(0.2))
-	# # model.add(BatchNormalization())
-
-	# # model.add(Dropout(0.2))
-	
-	# model.add(Dense(output_dim=30,W_regularizer=l2(0.005)))
-	# model.add(Activation('relu'))
-	# model.add(Dropout(0.2))
-
-	# model.add(Dense(output_dim=30,W_regularizer=l2(0.002)))
-	# model.add(Activation('tanh'))
-	# model.add(Dropout(0.2))
-
-	model.add(Dense(512,input_dim=len(TrainX[0])))
-	
+	model.add(Dense(numNode,input_dim=len(TrainX[0])))
 	model.add(BatchNormalization())
 	model.add(Activation('tanh'))
 	# model.add(Dropout(0.5))
-	model.add(Dense(512,W_regularizer=l1(0.0005)))
-	
-	
+	model.add(Dense(numNode,W_regularizer=l1(0.001)))
 	model.add(BatchNormalization())
 	model.add(PReLU())
 	# model.add(Dropout(0.5))
+
+
 	for i in range (3):
-		model.add(Dense(512,W_regularizer=l2(0.002)))
+		model.add(Dense(numNode,W_regularizer=l2(0.002)))
 		model.add(BatchNormalization())
 		model.add(PReLU())
-		# model.add(Dropout(0.5))
-		model.add(Dense(512,W_regularizer=l1(0.001)))
+		model.add(Dropout(0.2))
+
+		model.add(Dense(numNode,W_regularizer=l1(0.001)))
 		model.add(BatchNormalization())
 		model.add(Activation('tanh'))
 		model.add(Dropout(0.5))
 
-	model.add(Dense(512,W_regularizer=l2(0.0002)))
-	
-	model.add(BatchNormalization())
-	model.add(PReLU())
-	# model.add(Dropout(0.2))
 
-	model.add(Dense(512))
-	
-	
-	model.add(BatchNormalization())
-	model.add(Activation('tanh'))
-
-
-	model.add(Dense(output_dim=len(GENRES)))
+	model.add(Dense(output_dim=sum(USED_GENRES)))
 	model.add(Activation("softmax"))
-	# sgd = SGD(lr=0.01,momentum=0.9, nesterov=True)
 	model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=["accuracy"])
 
-	model.fit(np.array(TrainX), TrainY, batch_size=int(len(TrainX)), nb_epoch=100,shuffle=True,verbose=1,validation_split=0.15)
+	model.fit(np.array(TrainX), TrainY, batch_size=int(len(TrainX)), nb_epoch=200,shuffle=True,verbose=1,validation_split=0.15)
 	PredY = model.predict_classes(np.array(TestX), batch_size=int(len(TrainX)))
 
-	confuseMat = [[0 for i in range(len(GENRES))] for j in range(len(GENRES))];
-
+	confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
 
 
 	for i in range(len(TestY)):
-		# print PredY[i]
 		confuseMat[TestY[i]][(PredY[i])] += 1
 	return confuseMat
 
 
+def OtherClassicalClassifier():
+	from sklearn.tree import DecisionTreeClassifier
+	from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier,GradientBoostingClassifier
+	from sklearn.naive_bayes import GaussianNB
+	from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+	from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
+
+	NeedReFetch = False
+	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
+
+	# assert(len(allGenreSongsTrain[0][0]) == 106)
+
+	TrainX = []
+	TrainY = []
+	TestX = []
+	TestY = []
+	for i in range(sum(USED_GENRES)):
+		for j in allGenreSongsTrain[i]:
+			TrainX.append(j)
+			TrainY.append(i)
+		for k in allGenreSongsTest[i]:
+			TestX.append(k)
+			TestY.append(i)
+
+	## remained to be XJBplay
+
+	classifiers = [
+    ("Decision Tree",DecisionTreeClassifier()),
+    ("Random Forest",RandomForestClassifier( n_estimators=50,max_features = None)),
+    ("AdaBoost",AdaBoostClassifier( n_estimators=50,)),
+    ("Gaussian Naive Bayes",GaussianNB()),
+    ("LDA",LDA()),
+    ("QDA",QDA()),
+    ("GBDT",GradientBoostingClassifier(n_estimators=100, max_features = None)),
+    ]
+
+	for name, clf in classifiers:
+		clf.fit(TrainX, TrainY)
+		PredY = clf.predict(TestX)
+
+		confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
+
+		for i in range(len(TestY)):
+			confuseMat[TestY[i]][(PredY[i])] += 1
+
+		print name,confuseMat
+
+	return
+	# pass
 
 
 
@@ -180,5 +198,6 @@ def NNet():
 
 if __name__ == '__main__':
 	# print multi_SVM(needcv = True)
-	print NNet()
+	print NNet() 
+	# OtherClassicalClassifier()
 	# pass
