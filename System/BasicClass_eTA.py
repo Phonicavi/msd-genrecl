@@ -87,6 +87,8 @@ class Song_eTA:
 		## till now 94 +12 = 106 dim features
 
 		allFeatures = np.hstack((meanV,covV,mean_bpm,cov_bpm,mean_slmax,cov_slmax,Trans))
+		# allFeatures = np.hstack((meanV,mean_bpm,cov_bpm,mean_slmax,cov_slmax,Trans))
+
 
 		# print len(allFeatures)
 
