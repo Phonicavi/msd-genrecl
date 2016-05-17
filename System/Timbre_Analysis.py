@@ -4,11 +4,12 @@ from BasicClass_TA import *
 import sys
 import random
 from sklearn.cluster import KMeans
+from sklearn.metrics import classification_report as clfr
 from sklearn import mixture
 
 NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
 GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
-USED_GENRES = [1,1,0,1,0,1,0]		## remained to be XJBplay
+USED_GENRES = [1,1,1,1,0,0,0]		## remained to be XJBplay
 
 
 
@@ -183,6 +184,9 @@ def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans",n_init = 3):
 	print "Start Kmeans predicting ..."
 	cnt = 0;
 	
+	TestY = []
+	PredY = []
+
 	for i in range(sum(USED_GENRES)):
 		for song in allGenreSongsTest[i]:
 			cnt += 1
@@ -197,6 +201,10 @@ def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans",n_init = 3):
 					gen = j
 					break
 			confuseMat[i][gen] += 1
+			TestY.append(i)
+			PredY.append(gen)
+
+	print(clfr(TestY, PredY))
 	print "Finish Kmeans predicting ..."
 	return confuseMat
 
@@ -211,6 +219,8 @@ def Knn_KL(K_value):
 
 	cnt = 0;
 
+	TestY = []
+	PredY = []
 	for i in range(sum(USED_GENRES)):
 		for testSong in allGenreSongsTest[i]:
 			cnt += 1
@@ -247,6 +257,11 @@ def Knn_KL(K_value):
 			assert(not max_idx == -1)
 
 			confuseMat[i][max_idx] += 1
+			TestY.append(i)
+			PredY.append(max_idx)
+
+	print(clfr(TestY, PredY))
+
 	print "Finish Knn ..."
 	print "K_value: ", K_value
 	return confuseMat
@@ -255,5 +270,5 @@ def Knn_KL(K_value):
 
 
 if __name__ == '__main__':
-	print Knn_KL(12)
+	# print Knn_KL(12)
 	print Kmeans_KL([4,1,1,2],inner = "Kmeans",n_init = 5)

@@ -6,6 +6,7 @@ from copy import deepcopy
 import pickle,os,random
 import threading
 from scipy.cluster.vq import whiten
+from sklearn import preprocessing
 
 CONF_THED = .6
 DATA_DIV_RATIO = .85
@@ -31,6 +32,7 @@ class Song_eTA:
 	def getAllFeatures(self,f):
 		timbre_dim = 12
 		timbreVec = list(f['analysis']['segments_timbre'])
+		# print np.cov((np.array(f['analysis']['segments_timbre'][])).T)
 		assert(len(timbreVec) > 0),'Not enough timbre'
 		meanV = [(float(sum(item[i] for item in timbreVec))/len(timbreVec)) for i in range(len(timbreVec[0]))]
 		covMat = [[0 for i in range(len(timbreVec[0]))] for j in range(len(timbreVec[0]))]
@@ -175,8 +177,16 @@ def fetchData_eTA(numNeeded,Genres,NeedReFetch,usedGenres =[1,1,1,1]):		## numNe
 			ALL_SONGS_FEATURES += THD_RET[i]
 
 		# print len(ALL_SONGS_FEATURES[0]),len(ALL_SONGS_FEATURES)
-		WHITEN_ALL_SONGS_FEATURES = list(whiten(np.array(ALL_SONGS_FEATURES)))
-		# WHITEN_ALL_SONGS_FEATURES = (ALL_SONGS_FEATURES)
+
+		preProc = "whiten"
+
+		if preProc == 'whiten':
+			PREPORC_ALL_SONGS_FEATURES = list(whiten(np.array(ALL_SONGS_FEATURES)))
+		elif preProc == 'scaling':
+			PREPORC_ALL_SONGS_FEATURES = list(preprocessing.scale(np.array(ALL_SONGS_FEATURES)))
+		else:
+			PREPORC_ALL_SONGS_FEATURES = (ALL_SONGS_FEATURES)
+		
 
 
 		head = 0
@@ -184,8 +194,8 @@ def fetchData_eTA(numNeeded,Genres,NeedReFetch,usedGenres =[1,1,1,1]):		## numNe
 		for i in range(len(Genres)):
 			head = tail;
 			tail += numNeeded[i]
-			allGenreSongsTrain[i] = WHITEN_ALL_SONGS_FEATURES[head:tail] [:int(n*DATA_DIV_RATIO)]
-			allGenreSongsTest[i] = WHITEN_ALL_SONGS_FEATURES[head:tail][int(n*DATA_DIV_RATIO):]
+			allGenreSongsTrain[i] = PREPORC_ALL_SONGS_FEATURES[head:tail] [:int(n*DATA_DIV_RATIO)]
+			allGenreSongsTest[i] = PREPORC_ALL_SONGS_FEATURES[head:tail][int(n*DATA_DIV_RATIO):]
 			assert(len(allGenreSongsTrain[i])+len(allGenreSongsTest[i]) == numNeeded[i])
 
 		with open('allGenreSongsTrain_eTA.pkl','wb') as f1 ,open('allGenreSongsTest_eTA.pkl','wb') as f2:

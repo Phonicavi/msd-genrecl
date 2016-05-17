@@ -13,6 +13,13 @@ USED_GENRES = [1,1,1,1,0,0,0]					## remained to be XJBplay
 
 
 
+'''
+TODO:
+	FeatureSelection()
+'''
+
+
+
 def multi_SVM(needcv = False):
 	NeedReFetch = False
 	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
@@ -46,7 +53,7 @@ def multi_SVM(needcv = False):
 		 					# {'kernel': ['poly'], 'gamma': [2**i for i in range(-8,9,2)], 'C': [2**i for i in range(-8,9,2)], 'degree':[2,3,4]},
 		 					]
 		print "Start SVM CV ... "
-		clf = GSCV(SVC(), tuned_parameters, cv=5)
+		clf = GSCV(SVC(), tuned_parameters, cv=7)
 		clf.fit(TrainX, TrainY)
 
 		print("Best parameters set found on development set:")
@@ -60,6 +67,9 @@ def multi_SVM(needcv = False):
 		print "Start SVM predicting ... "
 
 		PredY = clf.predict(TestX)
+
+		print(clfr(TestY, PredY))
+
 		for i in range(len(TestY)):
 			confuseMat[TestY[i]][PredY[i]] += 1
 
@@ -73,7 +83,7 @@ def NNet():
 	from keras.layers.core import Dense, Dropout, Activation, Flatten
 	from keras.layers.advanced_activations import PReLU
 	from keras.layers.normalization import BatchNormalization
-	from keras.optimizers import SGD, Adadelta, Adagrad
+	from keras.optimizers import SGD, Adadelta, Adagrad,Adam,RMSprop
 	from keras.utils import np_utils
 	from keras.regularizers import l2,l1
 	from keras.layers.convolutional import Convolution2D, MaxPooling2D
@@ -103,39 +113,45 @@ def NNet():
 
 	model = Sequential()
 
-	numNode = 128
+	numNode = 10
 
-	model.add(Dense(numNode,input_dim=len(TrainX[0])))
+	model.add(Dense(numNode,input_dim=len(TrainX[0]),W_regularizer=l1(0.1)))
 	model.add(BatchNormalization())
 	model.add(Activation('tanh'))
-	# model.add(Dropout(0.5))
-	model.add(Dense(numNode,W_regularizer=l1(0.001)))
+	model.add(Dropout(0.2))
+
+
+	model.add(Dense(numNode,W_regularizer=l2(1),))
 	model.add(BatchNormalization())
-	model.add(PReLU())
+	model.add(Activation('tanh'))
+	model.add(Dropout(0.3))
+
+
+
+	# model.add(Dense(numNode,W_regularizer=l1(0.1)))
+	# model.add(BatchNormalization())
+	# model.add(PReLU())
 	# model.add(Dropout(0.5))
 
 
-	for i in range (3):
-		model.add(Dense(numNode,W_regularizer=l2(0.002)))
-		model.add(BatchNormalization())
-		model.add(PReLU())
-		model.add(Dropout(0.2))
 
-		model.add(Dense(numNode,W_regularizer=l1(0.001)))
-		model.add(BatchNormalization())
-		model.add(Activation('tanh'))
-		model.add(Dropout(0.5))
+		
+
 
 
 	model.add(Dense(output_dim=sum(USED_GENRES)))
 	model.add(Activation("softmax"))
-	model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=["accuracy"])
+	model.compile(loss='categorical_crossentropy'
+				,optimizer="adam"
+				,metrics=["accuracy"]
+				)
 
-	model.fit(np.array(TrainX), TrainY, batch_size=int(len(TrainX)), nb_epoch=200,shuffle=True,verbose=1,validation_split=0.15)
-	PredY = model.predict_classes(np.array(TestX), batch_size=int(len(TrainX)))
+	model.fit(np.array(TrainX), TrainY, batch_size=int(len(TrainX)*.9),nb_epoch = 6000,shuffle=True,verbose=1,validation_split=0.15)
+	PredY = model.predict_classes(np.array(TestX), batch_size=int(len(TrainX)*.9))
 
 	confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
 
+	print(clfr(TestY, PredY))
 
 	for i in range(len(TestY)):
 		confuseMat[TestY[i]][(PredY[i])] += 1
@@ -184,10 +200,13 @@ def OtherClassicalClassifier():
 
 		confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
 
+
+
 		for i in range(len(TestY)):
 			confuseMat[TestY[i]][(PredY[i])] += 1
 
 		print name,confuseMat
+		print(clfr(TestY, PredY))
 
 	return
 	# pass
