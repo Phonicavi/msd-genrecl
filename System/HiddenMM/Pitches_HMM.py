@@ -9,9 +9,11 @@ from sklearn.externals import joblib
 
 NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
 GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
-USED_GENRES = [1,0,1,1,0,1,0]					## remained to be XJBplay
 
-def classifierByHmm(n_cpnts = 4,covariance_type_ = 'tied'):
+## Here is the diff, when you change the array, remember to set NeedFetch to True
+USED_GENRES = [1,0,1,0,1,0,0]					## remained to be XJBplay
+
+def classifierByHmm(n_cpnts = 7,covariance_type_ = 'tied'):
 
 	NeedReFetch = True
 
@@ -42,6 +44,7 @@ def classifierByHmm(n_cpnts = 4,covariance_type_ = 'tied'):
 		hmmModel[i] = mdlList[idx]
 
 	needTrain = True
+
 	if needTrain:
 		TASK = []
 		for i in range(sum(USED_GENRES)):
@@ -52,7 +55,7 @@ def classifierByHmm(n_cpnts = 4,covariance_type_ = 'tied'):
 				# print trainSongs
 				len_all.append(len(trainSongs))
 
-			TASK.append(threading.Thread(target = thd,args = (i,seq_all,len_all,n_cpnts,400,3)))
+			TASK.append(threading.Thread(target = thd,args = (i,seq_all,len_all,n_cpnts,250,3)))
 
 		print "Starting Train model ..."
 

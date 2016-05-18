@@ -6,7 +6,7 @@ from copy import deepcopy
 import pickle,os,random
 import threading
 from scipy.cluster.vq import whiten
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans,MiniBatchKMeans
 from sklearn import mixture
 
 
@@ -41,6 +41,7 @@ class Song_PH:						## till now only implement for seg_timbre
 	def getPitchSeq(self,f,what,preProcByCluster):
 		dim = 12
 		pitches_arr =  np.array(f['analysis'][what])
+		# print what
 		assert(len(pitches_arr) > 1),"Not enough segs!"
 
 		if preProcByCluster == True:
@@ -57,7 +58,7 @@ class Song_PH:						## till now only implement for seg_timbre
 
 def preProcByClusterByKmeans(trains,tests):
 
-	NUM_CLUSTER = 13
+	NUM_CLUSTER = 15
 
 	newTrain = []
 	newTest = []
@@ -83,12 +84,23 @@ def preProcByClusterByKmeans(trains,tests):
 
 	print 'Start KMeans ... '
 
-	est = KMeans(n_clusters = NUM_CLUSTER)
+	# est = KMeans(n_clusters = NUM_CLUSTER)
+	est = MiniBatchKMeans(n_clusters = NUM_CLUSTER,batch_size = int(len(ALL_FEA)/10))		## for speeding up
+
 	est.fit(ALL_FEA)
 
 	print 'Finish KMeans ... '
 
 	lbls = est.labels_
+
+	# print 'Start GMM ... '
+
+	# est = mixture.GMM(n_components=NUM_CLUSTER, covariance_type='full')
+	# est.fit(ALL_FEA)
+
+	# print 'Finish GMM ... '
+
+	# lbls = est.predict(ALL_FEA)
 
 	cnt = 0
 
@@ -197,21 +209,29 @@ def fetchData_PH(numNeeded,Genres,NeedReFetch,usedGenres = [1,1,1,1],fetch_what 
 
 
 
-		if preProcByCluster == True:
-			allGenreSongsTrain,allGenreSongsTest = preProcByClusterByKmeans(allGenreSongsTrain,allGenreSongsTest)	
+		
 
+		if not preProcByCluster:
+			with open('allGenreSongsTrain_PH.li','w+') as f1 ,open('allGenreSongsTest_PH.li','w+') as f2:
+				f1.write(str(allGenreSongsTrain));
+				f2.write(str(allGenreSongsTest));
 
+	
+
+	if NeedReFetch and preProcByCluster:
+		allGenreSongsTrain,allGenreSongsTest = preProcByClusterByKmeans(allGenreSongsTrain,allGenreSongsTest)
 		with open('allGenreSongsTrain_PH.li','w+') as f1 ,open('allGenreSongsTest_PH.li','w+') as f2:
 			f1.write(str(allGenreSongsTrain));
 			f2.write(str(allGenreSongsTest));
+	elif not preProcByCluster:
+		for i in range(len(usedGenres)):
+			if (usedGenres[i] == 0):
+				allGenreSongsTrain[i] = []
+				allGenreSongsTest[i] = []
+		for t in range(len(usedGenres) - sum(usedGenres)):
+			allGenreSongsTrain.remove([])
+			allGenreSongsTest.remove([])	
 
-	for i in range(len(usedGenres)):
-		if (usedGenres[i] == 0):
-			allGenreSongsTrain[i] = []
-			allGenreSongsTest[i] = []
-	for t in range(len(usedGenres) - sum(usedGenres)):
-		allGenreSongsTrain.remove([])
-		allGenreSongsTest.remove([])
 	print "Done with Fetching Data ..."
 
 	return allGenreSongsTrain,allGenreSongsTest
