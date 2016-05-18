@@ -8,6 +8,7 @@ import threading
 from scipy.cluster.vq import whiten
 from sklearn.cluster import KMeans,MiniBatchKMeans
 from sklearn import mixture
+from sklearn.decomposition import PCA
 
 
 
@@ -58,7 +59,7 @@ class Song_PH:						## till now only implement for seg_timbre
 
 def preProcByClusterByKmeans(trains,tests):
 
-	NUM_CLUSTER = 15
+	NUM_CLUSTER = 18
 
 	newTrain = []
 	newTest = []
@@ -83,24 +84,22 @@ def preProcByClusterByKmeans(trains,tests):
 		lenTest.append(li)
 
 	print 'Start KMeans ... '
-
 	# est = KMeans(n_clusters = NUM_CLUSTER)
-	est = MiniBatchKMeans(n_clusters = NUM_CLUSTER,batch_size = int(len(ALL_FEA)/10))		## for speeding up
-
+	est = MiniBatchKMeans(n_clusters = NUM_CLUSTER,batch_size = int(len(ALL_FEA)/5),n_jobs=4)		## for speeding up
 	est.fit(ALL_FEA)
-
 	print 'Finish KMeans ... '
-
 	lbls = est.labels_
 
 	# print 'Start GMM ... '
-
-	# est = mixture.GMM(n_components=NUM_CLUSTER, covariance_type='full')
+	# est = mixture.GMM(n_components=NUM_CLUSTER, covariance_type='full',n_jobs=4)
 	# est.fit(ALL_FEA)
-
 	# print 'Finish GMM ... '
-
 	# lbls = est.predict(ALL_FEA)
+
+	# print 'Start PCA ...'
+	# pca = PCA(n_components = 1,whiten = False,n_jobs=4)
+	# lbls = pca.fit_transform(np.array(ALL_FEA))
+	# print 'Finish PCA ... '
 
 	cnt = 0
 

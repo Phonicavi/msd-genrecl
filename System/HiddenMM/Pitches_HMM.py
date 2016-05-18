@@ -43,9 +43,9 @@ def classifierByHmm(n_cpnts = 7,covariance_type_ = 'tied'):
 		(maxv,idx) = max((maxScore,idx) for (idx,maxScore) in enumerate ([ mdl.score(seq_all,len_all) for mdl in mdlList]))
 		hmmModel[i] = mdlList[idx]
 
-	needTrain = True
+	NeedTrain = True
 
-	if needTrain:
+	if NeedTrain:
 		TASK = []
 		for i in range(sum(USED_GENRES)):
 			seq_all = []
