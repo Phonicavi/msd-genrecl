@@ -30,8 +30,8 @@ def fetchData_Lyric(numNeeded,Genres,NeedReFetch,usedGenres = [1,1,1,1],):		## n
 		with open('my_tag_for_lyric.dic','r') as f:
 			TagDic = eval(f.read())
 
-		num_bf_pca = 1000
-		num_af_pca = 8
+		num_bf_pca = 2000
+		num_af_pca = 10
 
 		C = []
 		CNT = []
@@ -66,14 +66,26 @@ def fetchData_Lyric(numNeeded,Genres,NeedReFetch,usedGenres = [1,1,1,1],):		## n
 					li.append(fea[idx])
 			ALL_FEA[i] = li
 
-		print 'Len of ALL_FEA: ',len(ALL_FEA)
+		NeedPCA = False
+			
+		if NeedPCA: 
+			print 'Len of ALL_FEA: ',len(ALL_FEA)
 
-		print 'Start PCA ... '
+			print 'Start PCA ... '
 
-		pca = MiniBatchSparsePCA(n_components = num_af_pca,n_jobs = 4,verbose = 1,batch_size = len(ALL_FEA)/10)
-		new_all_fea = pca.fit_transform(np.array(ALL_FEA))
+			# pca = KernelPCA(n_components = num_af_pca,)
+			
+			pca = MiniBatchSparsePCA(n_components = num_af_pca,n_jobs = 4,verbose = 1,batch_size = len(ALL_FEA)/10)
+			new_all_fea = pca.fit_transform(np.array(ALL_FEA))
 
-		print '\nFinish PCA ... '
+			# from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+
+			# pca = LDA(n_components = num_af_pca)
+			# new_all_fea = pca.fit_transform(np.array(ALL_FEA))
+
+			ALL_FEA = new_all_fea
+
+			print '\nFinish PCA ... '
 
 		allSongs = []
 		head = 0

@@ -6,6 +6,9 @@ from sklearn.grid_search import GridSearchCV as GSCV
 from sklearn.metrics import classification_report as clfr
 from sklearn.svm import SVC
 import math
+import sys
+sys.path.append('../')
+from FeatureSelection import featureSelection
 
 NUM_NEED_PER_GENRE = [240,130,110,40,70]
 GENRES = ['Rock','Rap','Country','Electronic','Latin']
@@ -23,6 +26,7 @@ TODO:
 def multi_SVM(needcv = False):
 	NeedReFetch = False
 	allGenreSongsTrain,allGenreSongsTest = fetchData_Lyric(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
+	# allGenreSongsTrain,allGenreSongsTest = featureSelection (allGenreSongsTrain,allGenreSongsTest,method = 'RFECV',testmode = False)
 
 	# assert(len(allGenreSongsTrain[0][0]) == 106)
 
@@ -117,21 +121,16 @@ def NNet():
 
 	model.add(Dense(numNode,input_dim=len(TrainX[0]),W_regularizer=l1(0.1)))
 	model.add(BatchNormalization())
-	model.add(PReLU())
+	model.add(Activation('tanh'))
 	model.add(Dropout(0.5))
 
 
-	model.add(Dense(numNode,W_regularizer=l2(3),))
+	model.add(Dense(numNode,W_regularizer=l2(5),))
 	model.add(BatchNormalization())
 	model.add(PReLU())
 	model.add(Dropout(0.5))
 
 
-
-	model.add(Dense(numNode,W_regularizer=l2(1)))
-	model.add(BatchNormalization())
-	model.add(PReLU())
-	model.add(Dropout(0.5))
 
 
 
@@ -167,6 +166,7 @@ def OtherClassicalClassifier():
 
 	NeedReFetch = False
 	allGenreSongsTrain,allGenreSongsTest = fetchData_Lyric(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
+	allGenreSongsTrain,allGenreSongsTest = featureSelection (allGenreSongsTrain,allGenreSongsTest,method = 'Stab',testmode = False,)
 
 	# assert(len(allGenreSongsTrain[0][0]) == 106)
 
@@ -186,12 +186,12 @@ def OtherClassicalClassifier():
 
 	classifiers = [
     ("Decision Tree",DecisionTreeClassifier()),
-    ("Random Forest",RandomForestClassifier( n_estimators=50,max_features = None)),
-    ("AdaBoost",AdaBoostClassifier( n_estimators=50,)),
+    ("Random Forest",RandomForestClassifier( n_estimators=100,max_features = None,n_jobs = 4)),
+    ("AdaBoost",AdaBoostClassifier( n_estimators=100,)),
     ("Gaussian Naive Bayes",GaussianNB()),
     ("LDA",LDA()),
     ("QDA",QDA()),
-    ("GBDT",GradientBoostingClassifier(n_estimators=100, max_features = None)),
+    ("GBDT",GradientBoostingClassifier(n_estimators=100, max_features = None,)),
     ]
 
 	for name, clf in classifiers:
@@ -217,6 +217,6 @@ def OtherClassicalClassifier():
 
 if __name__ == '__main__':
 	# print multi_SVM(needcv = True)
-	print NNet() 
-	# OtherClassicalClassifier()
+	# print NNet() 
+	OtherClassicalClassifier()
 	# pass

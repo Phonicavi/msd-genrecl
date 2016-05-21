@@ -6,10 +6,18 @@ from sklearn.grid_search import GridSearchCV as GSCV
 from sklearn.metrics import classification_report as clfr
 from sklearn.svm import SVC
 import math
+import sys
+sys.path.append('../')
+from FeatureSelection import featureSelection
 
 NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
 GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
 USED_GENRES = [1,1,1,1,0,0,0]					## remained to be XJBplay
+
+
+# NUM_NEED_PER_GENRE = [240,130,110,40,70]
+# GENRES = ['Rock','Rap','Country','Electronic','Latin']
+# USED_GENRES = [1,1,0,0,1]	
 
 
 
@@ -23,6 +31,8 @@ TODO:
 def multi_SVM(needcv = False):
 	NeedReFetch = False
 	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
+	# allGenreSongsTrain,allGenreSongsTest = featureSelection (allGenreSongsTrain,allGenreSongsTest,method = 'MIC',testmode = False,n_features_to_select = 85)
+
 
 	# assert(len(allGenreSongsTrain[0][0]) == 106)
 
@@ -40,12 +50,14 @@ def multi_SVM(needcv = False):
 	confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
 	if not needcv:
 		print "Start SVM training ... "
-		model = SVC()
+		model = SVC(probability=True,decision_function_shape='ovr',kernel = 'rbf',gamma = 0.0078125, C = 8)
 		model.fit(TrainX,TrainY)
 		print "Start SVM predicting ... "
 		PredY = model.predict(TestX)
+		print model.decision_function(TestX)
 		for i in range(len(TestY)):
 			confuseMat[TestY[i]][PredY[i]] += 1
+		print(clfr(TestY, PredY))
 	else:
 		tuned_parameters = [															## remained to be play with
 							{'kernel': ['rbf'], 'gamma': [2**i for i in range(-15,-4)], 'C': [2**i for i in range(-5,8)]},
@@ -53,8 +65,10 @@ def multi_SVM(needcv = False):
 		 					# {'kernel': ['poly'], 'gamma': [2**i for i in range(-8,9,2)], 'C': [2**i for i in range(-8,9,2)], 'degree':[2,3,4]},
 		 					]
 		print "Start SVM CV ... "
-		clf = GSCV(SVC(), tuned_parameters, cv=7)
+		clf = GSCV(SVC(decision_function_shape='ovr'), tuned_parameters, cv=7)
 		clf.fit(TrainX, TrainY)
+		print clf.decision_function(TestX)
+
 
 		print("Best parameters set found on development set:")
 		print(clf.best_params_)
@@ -67,6 +81,7 @@ def multi_SVM(needcv = False):
 		print "Start SVM predicting ... "
 
 		PredY = clf.predict(TestX)
+
 
 		print(clfr(TestY, PredY))
 
@@ -90,6 +105,8 @@ def NNet():
 
 	NeedReFetch = False
 	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
+	# allGenreSongsTrain,allGenreSongsTest = featureSelection (allGenreSongsTrain,allGenreSongsTest,method = 'MIC',testmode = False,n_features_to_select = None)
+
 
 
 
@@ -118,13 +135,13 @@ def NNet():
 	model.add(Dense(numNode,input_dim=len(TrainX[0]),W_regularizer=l1(0.1)))
 	model.add(BatchNormalization())
 	model.add(Activation('tanh'))
-	model.add(Dropout(0.2))
+	model.add(Dropout(0.5))
 
 
 	model.add(Dense(numNode,W_regularizer=l2(1),))
 	model.add(BatchNormalization())
 	model.add(Activation('tanh'))
-	model.add(Dropout(0.3))
+	model.add(Dropout(0.2))
 
 
 
@@ -168,6 +185,10 @@ def OtherClassicalClassifier():
 	NeedReFetch = False
 	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
 
+	
+
+	# allGenreSongsTrain,allGenreSongsTest = featureSelection (allGenreSongsTrain,allGenreSongsTest,method = 'MIC',testmode = False,n_features_to_select = 90)
+
 	# assert(len(allGenreSongsTrain[0][0]) == 106)
 
 	TrainX = []
@@ -185,18 +206,23 @@ def OtherClassicalClassifier():
 	## remained to be XJBplay
 
 	classifiers = [
-    ("Decision Tree",DecisionTreeClassifier()),
-    ("Random Forest",RandomForestClassifier( n_estimators=50,max_features = None)),
-    ("AdaBoost",AdaBoostClassifier( n_estimators=50,)),
-    ("Gaussian Naive Bayes",GaussianNB()),
+    # ("Decision Tree",DecisionTreeClassifier()),
+    # ("Random Forest",RandomForestClassifier( n_estimators=50,max_features = None)),
+    # ("AdaBoost",AdaBoostClassifier( n_estimators=50,)),
+    # ("Gaussian Naive Bayes",GaussianNB()),
     ("LDA",LDA()),
-    ("QDA",QDA()),
+    # ("QDA",QDA()),
     ("GBDT",GradientBoostingClassifier(n_estimators=100, max_features = None)),
     ]
+
 
 	for name, clf in classifiers:
 		clf.fit(TrainX, TrainY)
 		PredY = clf.predict(TestX)
+		from sklearn.preprocessing import scale,StandardScaler,MinMaxScaler
+		print (scale(clf.predict_proba(TestX))) 
+		print (MinMaxScaler().fit_transform(clf.predict_proba(TestX))) 
+
 
 		confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
 
@@ -216,7 +242,7 @@ def OtherClassicalClassifier():
 
 
 if __name__ == '__main__':
-	# print multi_SVM(needcv = True)
-	print NNet() 
+	print multi_SVM(needcv = True)
+	# print NNet() 
 	# OtherClassicalClassifier()
 	# pass

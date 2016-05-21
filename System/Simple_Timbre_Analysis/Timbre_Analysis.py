@@ -11,6 +11,10 @@ NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
 GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
 USED_GENRES = [1,1,1,1,0,0,0]		## remained to be XJBplay
 
+# NUM_NEED_PER_GENRE = [240,130,110,40,70]
+# GENRES = ['Rock','Rap','Country','Electronic','Latin']
+# USED_GENRES = [1,1,0,0,1]
+
 
 
 
@@ -210,7 +214,7 @@ def Kmeans_KL(cluster_num_of_each_genre,inner = "Kmeans",n_init = 3):
 
 def Knn_KL(K_value):
 	## FetchData
-	NeedReFetch = False
+	NeedReFetch = True
 	allGenreSongsTrain,allGenreSongsTest = fetchData_TA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
 
 	confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
@@ -271,4 +275,4 @@ def Knn_KL(K_value):
 
 if __name__ == '__main__':
 	# print Knn_KL(12)
-	print Kmeans_KL([4,1,1,2],inner = "Kmeans",n_init = 5)
+	print Kmeans_KL([4,1,2],inner = "Kmeans",n_init = 5)

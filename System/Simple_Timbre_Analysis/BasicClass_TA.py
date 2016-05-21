@@ -11,6 +11,11 @@ DATA_DIV_RATIO = .85
 H5_DATA_DIR = "../../fliter_h5_data/"
 
 
+
+# DATA_DIV_RATIO = .8
+# H5_DATA_DIR = "../../fliter_h5_data_with_lyric/"
+
+
 class Song_TA:
 	def __init__(self,fname,genre_):
 		try:
@@ -206,8 +211,8 @@ def fetchData_TA(numNeeded,Genres,NeedReFetch,usedGenres = [1,1,1,1]):		## numNe
 			t.join();
 
 		for i in range(len(Genres)):
-			allGenreSongsTrain[i] = THD_RET[i][:int(n*DATA_DIV_RATIO)]
-			allGenreSongsTest[i] = THD_RET[i][int(n*DATA_DIV_RATIO):]
+			allGenreSongsTrain[i] = THD_RET[i][:int(numNeeded[i]*DATA_DIV_RATIO)]
+			allGenreSongsTest[i] = THD_RET[i][int(numNeeded[i]*DATA_DIV_RATIO):]
 
 
 

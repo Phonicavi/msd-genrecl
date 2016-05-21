@@ -8,7 +8,7 @@ import threading
 from scipy.cluster.vq import whiten
 from sklearn.cluster import KMeans,MiniBatchKMeans
 from sklearn import mixture
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA,MiniBatchSparsePCA
 
 
 
@@ -17,6 +17,9 @@ import random
 CONF_PHED = .6
 DATA_DIV_RATIO = .85
 H5_DATA_DIR = "../../fliter_h5_data/"
+
+# DATA_DIV_RATIO = .8
+# H5_DATA_DIR = "../../fliter_h5_data_with_lyric/"
 
 
 '''
@@ -59,7 +62,7 @@ class Song_PH:						## till now only implement for seg_timbre
 
 def preProcByClusterByKmeans(trains,tests):
 
-	NUM_CLUSTER = 18
+	NUM_CLUSTER = 15
 
 	newTrain = []
 	newTest = []
@@ -85,7 +88,7 @@ def preProcByClusterByKmeans(trains,tests):
 
 	print 'Start KMeans ... '
 	# est = KMeans(n_clusters = NUM_CLUSTER)
-	est = MiniBatchKMeans(n_clusters = NUM_CLUSTER,batch_size = int(len(ALL_FEA)/5),n_jobs=4)		## for speeding up
+	est = MiniBatchKMeans(n_clusters = NUM_CLUSTER,batch_size = int(len(ALL_FEA)/5),)		## for speeding up
 	est.fit(ALL_FEA)
 	print 'Finish KMeans ... '
 	lbls = est.labels_
@@ -97,7 +100,9 @@ def preProcByClusterByKmeans(trains,tests):
 	# lbls = est.predict(ALL_FEA)
 
 	# print 'Start PCA ...'
-	# pca = PCA(n_components = 1,whiten = False,n_jobs=4)
+	# # pca = PCA(n_components = 1,whiten = False,n_jobs=4)
+	# pca = MiniBatchSparsePCA(n_components = 1,n_jobs = 4,verbose = 1,batch_size = len(ALL_FEA)/10)
+
 	# lbls = pca.fit_transform(np.array(ALL_FEA))
 	# print 'Finish PCA ... '
 
@@ -203,8 +208,8 @@ def fetchData_PH(numNeeded,Genres,NeedReFetch,usedGenres = [1,1,1,1],fetch_what 
 			t.join();
 
 		for i in range(len(Genres)):
-			allGenreSongsTrain[i] = THD_RET[i][:int(n*DATA_DIV_RATIO)]
-			allGenreSongsTest[i] = THD_RET[i][int(n*DATA_DIV_RATIO):]
+			allGenreSongsTrain[i] = THD_RET[i][:int(numNeeded[i]*DATA_DIV_RATIO)]
+			allGenreSongsTest[i] = THD_RET[i][int(numNeeded[i]*DATA_DIV_RATIO):]
 
 
 
@@ -218,6 +223,14 @@ def fetchData_PH(numNeeded,Genres,NeedReFetch,usedGenres = [1,1,1,1],fetch_what 
 	
 
 	if NeedReFetch and preProcByCluster:
+		for i in range(len(usedGenres)):
+			if (usedGenres[i] == 0):
+				allGenreSongsTrain[i] = []
+				allGenreSongsTest[i] = []
+		for t in range(len(usedGenres) - sum(usedGenres)):
+			allGenreSongsTrain.remove([])
+			allGenreSongsTest.remove([])	
+			
 		allGenreSongsTrain,allGenreSongsTest = preProcByClusterByKmeans(allGenreSongsTrain,allGenreSongsTest)
 		with open('allGenreSongsTrain_PH.li','w+') as f1 ,open('allGenreSongsTest_PH.li','w+') as f2:
 			f1.write(str(allGenreSongsTrain));

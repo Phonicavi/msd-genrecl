@@ -7,13 +7,18 @@ from hmmlearn import hmm
 import math
 from sklearn.externals import joblib
 
+'''# ## Here is the diff, when you change the array, remember to set NeedFetch to True'''
 NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
 GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
 
-## Here is the diff, when you change the array, remember to set NeedFetch to True
-USED_GENRES = [1,0,1,0,1,0,0]					## remained to be XJBplay
 
-def classifierByHmm(n_cpnts = 7,covariance_type_ = 'tied'):
+USED_GENRES = [1,0,1,1,0,0,0]					## remained to be XJBplay
+
+# NUM_NEED_PER_GENRE = [240,130,110,40,70]
+# GENRES = ['Rock','Rap','Country','Electronic','Latin']
+# USED_GENRES = [1,1,0,0,1]	
+
+def classifierByHmm(n_cpnts = 4,covariance_type_ = 'tied'):
 
 	NeedReFetch = True
 
@@ -50,12 +55,12 @@ def classifierByHmm(n_cpnts = 7,covariance_type_ = 'tied'):
 		for i in range(sum(USED_GENRES)):
 			seq_all = []
 			len_all = []
-			for (idx,trainSongs) in enumerate(allGenreSongsTest[i]):
+			for (idx,trainSongs) in enumerate(allGenreSongsTrain[i]):
 				seq_all += [ [item] for item in trainSongs]
 				# print trainSongs
 				len_all.append(len(trainSongs))
 
-			TASK.append(threading.Thread(target = thd,args = (i,seq_all,len_all,n_cpnts,250,3)))
+			TASK.append(threading.Thread(target = thd,args = (i,seq_all,len_all,n_cpnts,150,4)))
 
 		print "Starting Train model ..."
 

@@ -8,9 +8,15 @@ from sklearn.svm import SVC
 import math
 from sklearn.externals import joblib
 
-NUM_NEED_PER_GENRE = [200,200,200,200]
-GENRES = ['Jazz','Rap','Rock','Country']
-USED_GENRES = [1,1,1,1]					## remained to be XJBplay
+NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
+GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
+USED_GENRES = [1,1,1,1,0,0,0]		## remained to be XJBplay
+
+
+
+# NUM_NEED_PER_GENRE = [240,130,110,40,70]
+# GENRES = ['Rock','Rap','Country','Electronic','Latin']
+# USED_GENRES = [1,1,0,0,1]	
 
 
 
@@ -116,11 +122,11 @@ def OtherClassicalClassifier_VT():
 	classifiers = [
 	# ("KNN",KNeighborsClassifier(n_neighbors = 1000)),
     # ("Decision Tree",DecisionTreeClassifier(criterion = 'gini')),
-    # ("Random Forest",RandomForestClassifier( n_estimators=50,max_features = None)),
-    ("AdaBoost",AdaBoostClassifier( n_estimators=100,)),
-    ("Gaussian Naive Bayes",GaussianNB()),
-    ("LDA",LDA()),
-    ("QDA",QDA()),
+    ("Random Forest",RandomForestClassifier( n_estimators=100,max_features = None,n_jobs = 4)),
+    # ("AdaBoost",AdaBoostClassifier( n_estimators=100,)),
+    # ("Gaussian Naive Bayes",GaussianNB()),
+    # ("LDA",LDA()),
+    # ("QDA",QDA()),
     ("GBDT",GradientBoostingClassifier(n_estimators=100, max_features = None)),
     ]
 

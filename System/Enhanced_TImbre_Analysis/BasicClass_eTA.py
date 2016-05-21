@@ -7,10 +7,15 @@ import pickle,os,random
 import threading
 from scipy.cluster.vq import whiten
 from sklearn import preprocessing
+from sklearn.decomposition import PCA,RandomizedPCA,KernelPCA,MiniBatchSparsePCA
+
 
 CONF_THED = .6
 DATA_DIV_RATIO = .85
 H5_DATA_DIR = "../../fliter_h5_data/"
+# DATA_DIV_RATIO = .8
+# H5_DATA_DIR = "../../fliter_h5_data_with_lyric/"
+
 
 
 class Song_eTA:
@@ -105,11 +110,13 @@ def fetchData_eTA(numNeeded,Genres,NeedReFetch,usedGenres =[1,1,1,1]):		## numNe
 	assert(len(numNeeded) == len(Genres))
 	assert(len(usedGenres) == len(Genres))
 	print "Start Fetching Data ..."
+
 	if not NeedReFetch:
 		try:
 			with open('allGenreSongsTrain_eTA.pkl','rb') as f1,open('allGenreSongsTest_eTA.pkl','rb') as f2:
 				allGenreSongsTrain = pickle.load(f1)
 				allGenreSongsTest = pickle.load(f2)
+				print len(allGenreSongsTrain)
 		except Exception,e:
 			print Exception,':',e
 	else:
@@ -178,7 +185,7 @@ def fetchData_eTA(numNeeded,Genres,NeedReFetch,usedGenres =[1,1,1,1]):		## numNe
 
 		# print len(ALL_SONGS_FEATURES[0]),len(ALL_SONGS_FEATURES)
 
-		preProc = "whiten"
+		preProc = "scaling"
 
 		if preProc == 'whiten':
 			PREPORC_ALL_SONGS_FEATURES = list(whiten(np.array(ALL_SONGS_FEATURES)))
@@ -194,8 +201,8 @@ def fetchData_eTA(numNeeded,Genres,NeedReFetch,usedGenres =[1,1,1,1]):		## numNe
 		for i in range(len(Genres)):
 			head = tail;
 			tail += numNeeded[i]
-			allGenreSongsTrain[i] = PREPORC_ALL_SONGS_FEATURES[head:tail] [:int(n*DATA_DIV_RATIO)]
-			allGenreSongsTest[i] = PREPORC_ALL_SONGS_FEATURES[head:tail][int(n*DATA_DIV_RATIO):]
+			allGenreSongsTrain[i] = PREPORC_ALL_SONGS_FEATURES[head:tail] [:int(numNeeded[i]*DATA_DIV_RATIO)]
+			allGenreSongsTest[i] = PREPORC_ALL_SONGS_FEATURES[head:tail][int(numNeeded[i]*DATA_DIV_RATIO):]
 			assert(len(allGenreSongsTrain[i])+len(allGenreSongsTest[i]) == numNeeded[i])
 
 		with open('allGenreSongsTrain_eTA.pkl','wb') as f1 ,open('allGenreSongsTest_eTA.pkl','wb') as f2:
@@ -212,7 +219,47 @@ def fetchData_eTA(numNeeded,Genres,NeedReFetch,usedGenres =[1,1,1,1]):		## numNe
 
 
 
-	print "Done with Fetching Data ..."
+
+
+	NeedPCA = False
+	num_af_pca = 50
+
+	if NeedPCA:
+
+		CNT = [ (len(allGenreSongsTrain[i]), len(allGenreSongsTest[i])) for i in range(sum(usedGenres)) ]
+
+		ALL_FEA = []
+
+		for i in range(sum(usedGenres)):
+			ALL_FEA += allGenreSongsTrain[i]
+			ALL_FEA += allGenreSongsTest[i]
+
+
+		print 'Start PCA ... '
+
+		print 'len of ALL_FEA:',len(ALL_FEA)
+
+		pca = MiniBatchSparsePCA(n_components = num_af_pca,n_jobs = 4,verbose = 1,batch_size = len(ALL_FEA)/10)
+		new_all_fea = pca.fit_transform(np.array(ALL_FEA))
+
+		print '\nFinish PCA ... '
+
+		head = 0
+		tail = 0
+
+		for i in range(sum(usedGenres)):
+			head = tail
+			tail = tail+CNT[i][0]
+			allGenreSongsTrain[i] = ALL_FEA[head:tail]
+			head = tail
+			tail = tail+CNT[i][1]
+			allGenreSongsTest[i] = ALL_FEA[head:tail]
+
+
+
+
+
+		print "Done with Fetching Data ..."
 	return allGenreSongsTrain,allGenreSongsTest
 
 
