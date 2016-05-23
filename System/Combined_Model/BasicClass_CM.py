@@ -24,9 +24,9 @@ from BasicClass_PH import preProcByClusterByKmeans
 
 CONF_THED = .6
 DATA_DIV_RATIO = .85
-H5_DATA_DIR = "../../fliter_h5_data/"
+H5_DATA_DIR = "../../filter_h5_data/"
 # DATA_DIV_RATIO = .8
-# H5_DATA_DIR = "../../fliter_h5_data_with_lyric/"
+# H5_DATA_DIR = "../../filter_h5_data_with_lyric/"
 
 
 
@@ -232,8 +232,8 @@ def generateData_CM(allGenreSongsTrain_part_eTA,
 	elif method_eTA == 'LDA':
 		clf = LDA()
 	else:
-		# clf = GradientBoostingClassifier(n_estimators=100, max_features = None,)
-		clf = RandomForestClassifier(criterion = 'entropy', n_estimators=1000,max_features = 'auto',n_jobs= -1)
+		clf = GradientBoostingClassifier(n_estimators=100, max_features = None,)
+		# clf = RandomForestClassifier(criterion = 'entropy', n_estimators=1000,max_features = 'auto',n_jobs= -1)
 
 	clf.fit(TrainX, TrainY)
 	PredY = clf.predict(TestX)

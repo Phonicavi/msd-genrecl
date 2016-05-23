@@ -11,11 +11,11 @@ import random
 
 CONF_THED = .6
 DATA_DIV_RATIO = .85
-H5_DATA_DIR = "../../fliter_h5_data/"
+H5_DATA_DIR = "../../filter_h5_data/"
 
 
 # DATA_DIV_RATIO = .8
-# H5_DATA_DIR = "../../fliter_h5_data_with_lyric/"
+# H5_DATA_DIR = "../../filter_h5_data_with_lyric/"
 
 class Song_VT:						## till now only implement for seg_timbre
 	def __init__(self,fname,genre_,sample_ratio = 0.2,window_size = 10):

@@ -12,9 +12,9 @@ from FeatureSelection import featureSelection
 
 
 
-NUM_NEED_PER_GENRE = [200,200,200]
-GENRES = ['Jazz','Rap','Latin']
-USED_GENRES = [1,1,1]					## remained to be XJBplay
+NUM_NEED_PER_GENRE = [200,200,200,200]
+GENRES = ['Jazz','Rap','Rock','Country']
+USED_GENRES = [1,1,1,1]					## remained to be XJBplay
 
 # NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
 # GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
@@ -112,7 +112,7 @@ def OtherClassicalClassifier():
 
 	
 
-	allGenreSongsTrain,allGenreSongsTest = featureSelection (allGenreSongsTrain,allGenreSongsTest,method = 'mean',testmode = True,n_features_to_select = 6)
+	allGenreSongsTrain,allGenreSongsTest = featureSelection (allGenreSongsTrain,allGenreSongsTest,method = 'mean',testmode = True,n_features_to_select = int(len(allGenreSongsTrain[0][0])/3*2))
 
 	# assert(len(allGenreSongsTrain[0][0]) == 106)
 
@@ -132,7 +132,9 @@ def OtherClassicalClassifier():
 
 	classifiers = [
     # ("Decision Tree",DecisionTreeClassifier()),
-    ("Random Forest",RandomForestClassifier(criterion = 'entropy', n_estimators=1000,max_features = 'auto',n_jobs= -1)),
+    ("Random Forest(entropy)",RandomForestClassifier(criterion = 'entropy', n_estimators=500,max_features = 'auto',n_jobs= -1)),
+    ("Random Forest(gini)",RandomForestClassifier(criterion = 'gini', n_estimators=500,max_features = 'auto',n_jobs= -1)),
+
     # ("Random Forest",RandomForestClassifier(criterion = 'entropy', n_estimators=5000,max_features = 'auto',n_jobs= -1)),
 
 
@@ -260,12 +262,12 @@ if __name__ == '__main__':
 	# ONLY_NEED_REGENERATE = False
 	# print multi_SVM(needcv = True)
 
-	NEED_REFETCH = True
-	ONLY_NEED_REGENERATE = True
+	# NEED_REFETCH = False
+	# ONLY_NEED_REGENERATE = True
 
 	# print NNet()
 
-	# NEED_REFETCH = True 
-	# ONLY_NEED_REGENERATE = True
+	NEED_REFETCH = True
+	ONLY_NEED_REGENERATE = True
 	OtherClassicalClassifier()
 	# pass
