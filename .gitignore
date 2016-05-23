@@ -1,2 +1,4 @@
 *.pyc
 *.txt
+./filter_h5_data/*
+./filter_h5_with_lyric/*
