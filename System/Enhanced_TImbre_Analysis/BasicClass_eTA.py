@@ -185,7 +185,7 @@ def fetchData_eTA(numNeeded,Genres,NeedReFetch,usedGenres =[1,1,1,1]):		## numNe
 
 		# print len(ALL_SONGS_FEATURES[0]),len(ALL_SONGS_FEATURES)
 
-		preProc = "scaling"
+		preProc = "whiten"
 
 		if preProc == 'whiten':
 			PREPORC_ALL_SONGS_FEATURES = list(whiten(np.array(ALL_SONGS_FEATURES)))
@@ -259,7 +259,7 @@ def fetchData_eTA(numNeeded,Genres,NeedReFetch,usedGenres =[1,1,1,1]):		## numNe
 
 
 
-		print "Done with Fetching Data ..."
+	print "Done with Fetching Data ..."
 	return allGenreSongsTrain,allGenreSongsTest
 
 

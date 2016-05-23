@@ -11,7 +11,7 @@ from sklearn.cross_validation import StratifiedKFold
 
 def featureSelection (TrainSet,TestSet,method = 'mean',testmode = False,n_features_to_select = None):
 	assert testmode in [False,True],'TestMode must be Boolean!'
-	assert method in ['RFECV','f_class','MIC','RFC','Stab','mean'],'Not this method!'
+	assert method in ['RFECV','f_class','MIC','RFC','Stab','mean','Ridge'],'Not this method!'
 	print 'Using Feature Selection Method: ',method
 	X = []
 	Y = []
@@ -41,49 +41,53 @@ def featureSelection (TrainSet,TestSet,method = 'mean',testmode = False,n_featur
 	print 'Start Selection ... '
 
 
-	if method == 'RFECV' or method == 'mean':
-		# svc = SVC(kernel="linear")
-		ri =  Ridge(alpha=7)
+	# if method == 'RFECV' or method == 'mean':
+	# 	# svc = SVC(kernel="linear")
+	# 	ri =  Ridge(alpha=7)
 
-		rfecv = RFECV(estimator=ri, step=1, verbose = 0,
-			cv=3,
-            # scoring='accuracy',
-              )
-		rfecv.fit(X,Y)
-		ranks["RFECV"] = rank_to_dict(map(float, rfecv.ranking_), names, order=-1)
-		print("<RFECV> Optimal number of features  : %d" % rfecv.n_features_)
-		if method == 'RFECV':
-			for (idx,b) in enumerate(rfecv.support_):
-				if (b == True):
-					select_idx.append(idx)
+	# 	rfecv = RFECV(estimator=ri, step=1, verbose = 0,
+	# 		cv=3,
+ #            # scoring='accuracy',
+ #              )
+	# 	rfecv.fit(X,Y)
+	# 	ranks["RFECV"] = rank_to_dict(map(float, rfecv.ranking_), names, order=-1)
+	# 	print("<RFECV> Optimal number of features  : %d" % rfecv.n_features_)
+	# 	if method == 'RFECV':
+	# 		for (idx,b) in enumerate(rfecv.support_):
+	# 			if (b == True):
+	# 				select_idx.append(idx)
 			# print select_idx
 		# print [i for (i,b) in rfecv.support_ == True) 
 
-	if method == 'Stab' or method == 'mean':
-		rlasso = RandomizedLasso(alpha=0.04)
-		rlasso.fit(X, Y)
-		ranks["Stab"] = rank_to_dict(np.abs(rlasso.scores_), names)
+	# if method == 'Ridge' or method == 'mean':
+	# 	ridge = Ridge(alpha=7)
+	# 	ridge.fit(X, Y)
+	# 	ranks["Ridge"] = rank_to_dict(np.abs(ridge.coef_), names)
+
 
 	
-	if method == 'MIC' or method == 'mean':
-		mine = MINE()
-		mic_scores = []
-		for i in range(X.shape[1]):
-		    mine.compute_score(X[:,i], Y)
-		    m = mine.mic()
-		    mic_scores.append(m)
-		ranks["MIC"] = rank_to_dict(mic_scores, names)
+	# if method == 'MIC' or method == 'mean':
+	# 	mine = MINE()
+	# 	mic_scores = []
+	# 	for i in range(X.shape[1]):
+	# 	    mine.compute_score(X[:,i], Y)
+	# 	    m = mine.mic()
+	# 	    mic_scores.append(m)
+	# 	ranks["MIC"] = rank_to_dict(mic_scores, names)
 
 	if method == 'f_class' or method == 'mean':
 		f, pval  = f_classif(X, Y)
 		ranks["f_class"] = rank_to_dict(f, names)
+	if method == 'f_class' or method == 'mean':
+		f, pval  = f_classif(X, Y)
+		ranks["f_class1"] = rank_to_dict(f, names)
 
 	# if method == 'chi2' or method == 'mean':
 	# 	f, pval  = chi2(X, Y)
 	# 	ranks["chi2"] = rank_to_dict(f, names)
 
 	if method == 'RFC' or method == 'mean':
-		rf = RandomForestClassifier()
+		rf = RandomForestClassifier(criterion = 'entropy', n_estimators=200)
 		rf.fit(X,Y)
 		ranks["RFC"] = rank_to_dict(rf.feature_importances_, names)
 

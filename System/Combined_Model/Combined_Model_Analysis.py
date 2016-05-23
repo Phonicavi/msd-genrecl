@@ -12,9 +12,13 @@ from FeatureSelection import featureSelection
 
 
 
-NUM_NEED_PER_GENRE = [200,200,200,200]
-GENRES = ['Jazz','Rap','Rock','Country']
-USED_GENRES = [1,1,1,1]					## remained to be XJBplay
+NUM_NEED_PER_GENRE = [200,200,200]
+GENRES = ['Jazz','Rap','Latin']
+USED_GENRES = [1,1,1]					## remained to be XJBplay
+
+# NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
+# GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
+# USED_GENRES = [1,1,1,1,0,0,0]	
 
 
 # NUM_NEED_PER_GENRE = [240,130,110,40,70]
@@ -62,12 +66,12 @@ def multi_SVM(needcv = False):
 		print(clfr(TestY, PredY))
 	else:
 		tuned_parameters = [															## remained to be play with
-							{'kernel': ['rbf'], 'gamma': [2**i for i in range(-25,-15)], 'C': [2**i for i in range(-15,-7)]},
+							{'kernel': ['rbf'], 'gamma': [2**i for i in range(-8,8)], 'C': [2**i for i in range(-8,8)]},
 		 					# {'kernel': ['linear'], 'C': [2**i for i in range(-8,9,2)]},
 		 					# {'kernel': ['poly'], 'gamma': [2**i for i in range(-8,9,2)], 'C': [2**i for i in range(-8,9,2)], 'degree':[2,3,4]},
 		 					]
 		print "Start SVM CV ... "
-		clf = GSCV(SVC(decision_function_shape='ovr'), tuned_parameters, cv=10)
+		clf = GSCV(SVC(decision_function_shape='ovo'), tuned_parameters, cv=5)
 		clf.fit(TrainX, TrainY)
 
 
@@ -108,7 +112,7 @@ def OtherClassicalClassifier():
 
 	
 
-	# allGenreSongsTrain,allGenreSongsTest = featureSelection (allGenreSongsTrain,allGenreSongsTest,method = 'MIC',testmode = False,n_features_to_select = 7)
+	allGenreSongsTrain,allGenreSongsTest = featureSelection (allGenreSongsTrain,allGenreSongsTest,method = 'mean',testmode = True,n_features_to_select = 6)
 
 	# assert(len(allGenreSongsTrain[0][0]) == 106)
 
@@ -128,12 +132,15 @@ def OtherClassicalClassifier():
 
 	classifiers = [
     # ("Decision Tree",DecisionTreeClassifier()),
-    ("Random Forest",RandomForestClassifier(criterion = 'gini', n_estimators=1000,max_features = 'auto')),
-    # ("AdaBoost",AdaBoostClassifier( n_estimators=500,)),
+    ("Random Forest",RandomForestClassifier(criterion = 'entropy', n_estimators=1000,max_features = 'auto',n_jobs= -1)),
+    # ("Random Forest",RandomForestClassifier(criterion = 'entropy', n_estimators=5000,max_features = 'auto',n_jobs= -1)),
+
+
+    ("AdaBoost",AdaBoostClassifier( n_estimators=500,)),
     ("Gaussian Naive Bayes",GaussianNB()),
     ("LDA",LDA()),
     # ("QDA",QDA()),
-    # ("GBDT",GradientBoostingClassifier(n_estimators=100, max_features = None)),
+    ("GBDT",GradientBoostingClassifier(n_estimators=500, max_features = 'auto')),
     ]
 
 
@@ -210,10 +217,15 @@ def NNet():
 
 
 
-	# model.add(Dense(numNode,W_regularizer=l1(0.1)))
-	# model.add(BatchNormalization())
-	# model.add(PReLU())
-	# model.add(Dropout(0.5))
+	model.add(Dense(numNode,W_regularizer=l1(0.1)))
+	model.add(BatchNormalization())
+	model.add(PReLU())
+	model.add(Dropout(0.5))
+
+	model.add(Dense(numNode,W_regularizer=l2(1),))
+	model.add(BatchNormalization())
+	model.add(Activation('tanh'))
+	model.add(Dropout(0.2))
 
 
 
@@ -228,7 +240,7 @@ def NNet():
 				,metrics=["accuracy"]
 				)
 
-	model.fit(np.array(TrainX), TrainY, batch_size=int(len(TrainX)*.9),nb_epoch = 6000,shuffle=True,verbose=1,validation_split=0.2)
+	model.fit(np.array(TrainX), TrainY, batch_size=int(len(TrainX)*.9),nb_epoch = 1000,shuffle=True,verbose=1,validation_split=0.3)
 	PredY = model.predict_classes(np.array(TestX), batch_size=int(len(TrainX)*.9))
 
 	confuseMat = [[0 for i in range(sum(USED_GENRES))] for j in range(sum(USED_GENRES))];
@@ -244,16 +256,16 @@ def NNet():
 
 
 if __name__ == '__main__':
-	NEED_REFETCH = True
-	ONLY_NEED_REGENERATE = True
+	# NEED_REFETCH = True
+	# ONLY_NEED_REGENERATE = False
 	# print multi_SVM(needcv = True)
 
-	# NEED_REFETCH = False
-	# ONLY_NEED_REGENERATE = True
+	NEED_REFETCH = True
+	ONLY_NEED_REGENERATE = True
 
 	# print NNet()
 
-	NEED_REFETCH = False
-	ONLY_NEED_REGENERATE = True
+	# NEED_REFETCH = True 
+	# ONLY_NEED_REGENERATE = True
 	OtherClassicalClassifier()
 	# pass

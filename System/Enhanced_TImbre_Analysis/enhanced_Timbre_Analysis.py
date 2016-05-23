@@ -12,9 +12,11 @@ from FeatureSelection import featureSelection
 
 NUM_NEED_PER_GENRE = [200,200,200,200,200,200,200]
 GENRES = ['Jazz','Rap','Rock','Country','Blues','Latin','Electronic']
-USED_GENRES = [1,1,1,1,0,0,0]					## remained to be XJBplay
+USED_GENRES = [1,1,1,0,0,0,0]					## remained to be XJBplay
 
-
+NUM_NEED_PER_GENRE = [200,200,200]
+GENRES = ['Jazz','Rap','Rock']
+USED_GENRES = [1,1,1]
 # NUM_NEED_PER_GENRE = [240,130,110,40,70]
 # GENRES = ['Rock','Rap','Country','Electronic','Latin']
 # USED_GENRES = [1,1,0,0,1]	
@@ -182,7 +184,7 @@ def OtherClassicalClassifier():
 	from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 	from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
 
-	NeedReFetch = False
+	NeedReFetch = True
 	allGenreSongsTrain,allGenreSongsTest = fetchData_eTA(NUM_NEED_PER_GENRE,GENRES,NeedReFetch,USED_GENRES)
 
 	
@@ -242,7 +244,7 @@ def OtherClassicalClassifier():
 
 
 if __name__ == '__main__':
-	print multi_SVM(needcv = True)
+	# print multi_SVM(needcv = True)
 	# print NNet() 
-	# OtherClassicalClassifier()
+	OtherClassicalClassifier()
 	# pass

@@ -14,6 +14,8 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier,Gradient
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.grid_search import GridSearchCV as GSCV
 from sklearn.svm import SVC
+from sklearn.metrics import classification_report as clfr
+
 import sys
 sys.path.append('../')
 sys.path.append('../HiddenMM/')
@@ -204,9 +206,9 @@ def generateData_CM(allGenreSongsTrain_part_eTA,
 
 	## eTA part  	use SVM,LDA or GBDT
 	##########################################################
-	method_eTA = 'SVM'
+	method_eTA = 'LDA'
 	print '========================== method_eTA: ', method_eTA,' =========================='
-	allGenreSongsTrain_part_eTA,allGenreSongsTest_part_eTA = featureSelection (allGenreSongsTrain_part_eTA,allGenreSongsTest_part_eTA,method = 'MIC',testmode = False,n_features_to_select = 90)
+	# allGenreSongsTrain_part_eTA,allGenreSongsTest_part_eTA = featureSelection (allGenreSongsTrain_part_eTA,allGenreSongsTest_part_eTA,method = 'MIC',testmode = False,n_features_to_select = 90)
 
 
 	TrainX = []
@@ -230,12 +232,29 @@ def generateData_CM(allGenreSongsTrain_part_eTA,
 	elif method_eTA == 'LDA':
 		clf = LDA()
 	else:
-		clf = GradientBoostingClassifier(n_estimators=100, max_features = None,)
-	clf.fit(TrainX, TrainY)
+		# clf = GradientBoostingClassifier(n_estimators=100, max_features = None,)
+		clf = RandomForestClassifier(criterion = 'entropy', n_estimators=1000,max_features = 'auto',n_jobs= -1)
 
-	for (idx,item) in enumerate(clf.decision_function(TrainX)):
+	clf.fit(TrainX, TrainY)
+	PredY = clf.predict(TestX)
+	# from sklearn.preprocessing import scale,StandardScaler,MinMaxScaler
+	# print (scale(clf.predict_proba(TestX))) 
+	# print (MinMaxScaler().fit_transform(clf.predict_proba(TestX))) 
+
+
+	confuseMat = [[0 for i in range(NUM_GENRES)] for j in range(NUM_GENRES)];
+
+
+
+	for i in range(len(TestY)):
+		confuseMat[TestY[i]][(PredY[i])] += 1
+
+	print confuseMat
+	print(clfr(TestY, PredY))
+
+	for (idx,item) in enumerate(scale(clf.predict_proba(TrainX))):
 		allGenreSongsTrain[TrainY[idx]].append(list(item))
-	for (idx,item) in enumerate(clf.decision_function(TestX)):
+	for (idx,item) in enumerate(scale(clf.predict_proba(TestX))):
 		allGenreSongsTest[TestY[idx]].append(list(item))
 
 
@@ -279,7 +298,7 @@ def generateData_CM(allGenreSongsTrain_part_eTA,
 				# print trainSongs
 				len_all.append(len(trainSongs))
 
-			TASK.append(threading.Thread(target = thd,args = (i,seq_all,len_all,n_cpnts,150,4)))
+			TASK.append(threading.Thread(target = thd,args = (i,seq_all,len_all,n_cpnts,100,5)))
 
 		print "Starting Train model ..."
 		for t in TASK:
@@ -466,7 +485,7 @@ def fetchData_CM(numNeeded,Genres,NeedReFetch,OnlyNeedReGenerate,usedGenres =[1,
 
 			# print len(ALL_SONGS_FEATURES[0]),len(ALL_SONGS_FEATURES)
 
-			preProc = "scaling"
+			preProc = "whiten"
 
 			if preProc == 'whiten':
 				PREPORC_ALL_SONGS_FEATURES = list(whiten(np.array(ALL_SONGS_FEATURES)))
@@ -493,9 +512,9 @@ def fetchData_CM(numNeeded,Genres,NeedReFetch,OnlyNeedReGenerate,usedGenres =[1,
 				if (usedGenres[i] == 0):
 					allGenreSongsTrain_part_eTA[i] = []
 					allGenreSongsTest_part_eTA[i] = []
-				for t in range(len(usedGenres) - sum(usedGenres)):
-					allGenreSongsTrain_part_eTA.remove([])
-					allGenreSongsTest_part_eTA.remove([])
+			for t in range(len(usedGenres) - sum(usedGenres)):
+				allGenreSongsTrain_part_eTA.remove([])
+				allGenreSongsTest_part_eTA.remove([])
 
 			joblib.dump(allGenreSongsTrain_part_eTA,'allGenreSongsTrain_part_eTA_CM.pkl',compress = 3)
 			joblib.dump(allGenreSongsTest_part_eTA,'allGenreSongsTest_part_eTA_CM.pkl',compress = 3)
