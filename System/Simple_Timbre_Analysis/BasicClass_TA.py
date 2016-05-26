@@ -141,7 +141,7 @@ def getKLdiv(meanV1,meanV2,cov1,cov2):
 	KL_pq = logcov_pq + trcov_pq + musq_pq - dim
 	KL_qp = logcov_qp + trcov_qp + musq_qp - dim
 
-	return 0.5*(KL_pq+KL_qp)
+	return 0.5*float(KL_pq+KL_qp)
 
 
 
